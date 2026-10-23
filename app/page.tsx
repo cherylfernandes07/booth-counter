@@ -42,16 +42,26 @@ export default function FallFest() {
   const [editValue, setEditValue] = useState('');
   const editInputRef = useRef<HTMLInputElement>(null);
   const pendingRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const dirtyRef = useRef<Set<string>>(new Set()); // booths with in-flight writes
 
   const getDisplayName = (booth: Booth) => names[booth.id] || booth.defaultName;
 
-  // Poll every 2 seconds
+  // Poll every 2 seconds — skip booths with pending writes
   const fetchCounts = useCallback(async () => {
     try {
       const res = await fetch('/api/tickets');
       if (!res.ok) throw new Error('fetch failed');
       const data = await res.json();
-      setCounts(data.counts);
+      // Only update counts for booths that aren't being actively tapped
+      setCounts(prev => {
+        const next = { ...prev };
+        for (const id of Object.keys(data.counts)) {
+          if (!dirtyRef.current.has(id)) {
+            next[id] = data.counts[id];
+          }
+        }
+        return next;
+      });
       setNames(data.names || {});
       setStatus('live');
     } catch {
@@ -71,6 +81,7 @@ export default function FallFest() {
   }, [editingId]);
 
   const updateCount = (boothId: string, delta: number) => {
+    dirtyRef.current.add(boothId); // mark as in-flight
     setCounts(prev => {
       const next = { ...prev, [boothId]: Math.max(0, (prev[boothId] || 0) + delta) };
       clearTimeout(pendingRef.current[boothId]);
@@ -79,7 +90,11 @@ export default function FallFest() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ boothId, count: next[boothId] }),
-        }).catch(console.error);
+        })
+          .catch(console.error)
+          .finally(() => {
+            dirtyRef.current.delete(boothId); // clear after write completes
+          });
       }, 400);
       return next;
     });
