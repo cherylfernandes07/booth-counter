@@ -1,150 +1,284 @@
-.page {
-  --background: #fafafa;
-  --foreground: #fff;
+/* ── tokens ── */
+.root {
+  --bg: #fff;
+  --surface: #f7f5f0;
+  --border: #e4dfd6;
+  --fg: #1a1714;
+  --fg2: #6b6359;
+  --accent: #d4581a;
+  --accent-fg: #fff;
+  --card-bg: #fff;
+  --shadow: 0 1px 4px rgba(0,0,0,0.08);
 
-  --text-primary: #000;
-  --text-secondary: #666;
-
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-  --button-secondary-border: #ebebeb;
-
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-geist-sans);
-  background-color: var(--background);
-}
-
-.main {
-  display: flex;
-  flex: 1;
-  width: 100%;
-  max-width: 800px;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  background-color: var(--foreground);
-  padding: 120px 60px;
-}
-
-.intro {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  gap: 24px;
-}
-
-.intro h1 {
-  max-width: 320px;
-  font-size: 40px;
-  font-weight: 600;
-  line-height: 48px;
-  letter-spacing: -2.4px;
-  text-wrap: balance;
-  color: var(--text-primary);
-}
-
-.intro p {
-  max-width: 440px;
-  font-size: 18px;
-  line-height: 32px;
-  text-wrap: balance;
-  color: var(--text-secondary);
-}
-
-.intro a {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.ctas {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  max-width: 440px;
-  gap: 16px;
-  font-size: 14px;
-}
-
-.ctas a {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 128px;
-  border: 1px solid transparent;
-  transition: 0.2s;
-  cursor: pointer;
-  width: fit-content;
-  font-weight: 500;
-}
-
-a.primary {
-  background: var(--text-primary);
-  color: var(--background);
-  gap: 8px;
-}
-
-a.secondary {
-  border-color: var(--button-secondary-border);
-}
-
-/* Enable hover only on non-touch devices */
-@media (hover: hover) and (pointer: fine) {
-  a.primary:hover {
-    background: var(--button-primary-hover);
-    border-color: transparent;
-  }
-
-  a.secondary:hover {
-    background: var(--button-secondary-hover);
-    border-color: transparent;
-  }
-}
-
-@media (max-width: 600px) {
-  .main {
-    padding: 48px 24px;
-  }
-
-  .intro {
-    gap: 16px;
-  }
-
-  .intro h1 {
-    font-size: 32px;
-    line-height: 40px;
-    letter-spacing: -1.92px;
-  }
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 15px;
 }
 
 @media (prefers-color-scheme: dark) {
-  .logo {
-    filter: invert();
-  }
-
-  .page {
-    --background: #000;
-    --foreground: #000;
-
-    --text-primary: #ededed;
-    --text-secondary: #999;
-
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-    --button-secondary-border: #1a1a1a;
+  .root {
+    --bg: #171410;
+    --surface: #211e1a;
+    --border: #38332c;
+    --fg: #f0ebe4;
+    --fg2: #9e9285;
+    --accent: #e8713a;
+    --card-bg: #211e1a;
+    --shadow: 0 1px 4px rgba(0,0,0,0.3);
   }
 }
 
-.code {
-  font-family: var(--font-geist-mono);
-  font-size: 0.9em;
-  background: color-mix(in srgb, currentColor 8%, transparent);
-  padding: 0.1em 0.4em;
+/* ── header ── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--accent);
+  color: var(--accent-fg);
+  padding: 12px 16px 0;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.siteTitle {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.totalPill {
+  background: rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── tabs ── */
+.tabs {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+
+.tabBtn {
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.85);
+  border: none;
+  padding: 7px 14px;
+  border-radius: 8px 8px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.tabBtn:hover { background: rgba(255,255,255,0.28); }
+.tabActive {
+  background: var(--bg) !important;
+  color: var(--accent) !important;
+}
+
+/* ── main ── */
+.main {
+  padding: 20px 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.statusMsg {
+  text-align: center;
+  padding: 8px;
+  color: var(--fg2);
+  font-size: 13px;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.statusError {
+  text-align: center;
+  padding: 8px;
+  color: #c4510e;
+  font-size: 13px;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── view toggle ── */
+.viewToggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.viewBtn {
+  padding: 6px 14px;
   border-radius: 6px;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  color: var(--fg2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.viewActive {
+  border-color: var(--accent) !important;
+  background: var(--accent) !important;
+  color: var(--accent-fg) !important;
+}
+
+/* ── booth grid ── */
+.boothGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.boothCard {
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.boothName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fg2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ticketCount {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--fg);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ticketLabel {
+  font-size: 11px;
+  color: var(--fg2);
+  margin-top: 2px;
+}
+
+.counterBtns {
+  display: flex;
+  gap: 6px;
+}
+
+.counterBtn {
+  flex: 1;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.counterBtn:active { transform: scale(0.93); }
+
+.btnMinus { background: var(--surface); color: var(--fg2); }
+.btnPlus  { background: var(--accent);  color: var(--accent-fg); }
+
+/* ── organizer ── */
+.sectionLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--fg2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.gradeSummaries {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.gradeSummaryCard {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+}
+
+.gsLabel { font-size: 12px; font-weight: 700; color: var(--fg2); text-transform: uppercase; letter-spacing: 0.5px; }
+.gsCount { font-size: 28px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+.gsSub   { font-size: 11px; color: var(--fg2); }
+
+.tableWrap { overflow-x: auto; }
+
+.orgTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 280px;
+}
+
+.orgTable th {
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--surface);
+  color: var(--fg2);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1.5px solid var(--border);
+}
+
+.orgTable td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+
+.orgTable tbody tr:hover td { background: var(--surface); }
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.badgeZero { background: var(--surface); color: var(--fg2); }
+.badgeHigh { background: #fef3ea; color: #c4510e; }
+
+@media (prefers-color-scheme: dark) {
+  .badgeHigh { background: #3d2010; color: #e8713a; }
+}
+
+.grandTotalRow td {
+  font-weight: 700;
+  border-top: 2px solid var(--border);
+  background: var(--surface);
+}
+
+@media (max-width: 480px) {
+  .boothGrid { grid-template-columns: repeat(2, 1fr); }
+  .ticketCount { font-size: 30px; }
 }
