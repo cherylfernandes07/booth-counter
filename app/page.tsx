@@ -19,11 +19,13 @@ interface Booth {
 }
 
 const BOOTHS: Booth[] = GRADES.flatMap(g =>
-  CLASSES.map(c => ({
-    id: `${g}-${c}`,
-    grade: g,
-    defaultName: `${GRADE_LABELS[g]} · Class ${c}`,
-  }))
+  CLASSES
+    .filter(c => !(g === '3' && c === 'D'))
+    .map(c => ({
+      id: `${g}-${c}`,
+      grade: g,
+      defaultName: `${GRADE_LABELS[g]} · Class ${c}`,
+    }))
 );
 
 type Counts = Record<string, number>;

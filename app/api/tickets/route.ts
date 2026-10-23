@@ -2,14 +2,15 @@ import { Redis } from '@upstash/redis';
 import { NextResponse } from 'next/server';
 
 const kv = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_API_URL!,
-  token: process.env.UPSTASH_REDIS_REST_API_TOKEN!,
-  
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
 const GRADES = ['K', '1', '2', '3', '4', '5'];
 const CLASSES = ['A', 'B', 'C', 'D'];
-const ALL_BOOTHS = GRADES.flatMap(g => CLASSES.map(c => `${g}-${c}`));
+const ALL_BOOTHS = GRADES.flatMap(g =>
+  CLASSES.filter(c => !(g === '3' && c === 'D')).map(c => `${g}-${c}`)
+);
 
 // GET /api/tickets — returns all booth counts and custom names
 export async function GET() {
