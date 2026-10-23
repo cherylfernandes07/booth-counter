@@ -155,12 +155,48 @@
   gap: 10px;
 }
 
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+}
+
 .boothName {
   font-size: 13px;
   font-weight: 700;
   color: var(--fg2);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.editBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px;
+  opacity: 0.4;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.editBtn:hover { opacity: 1; }
+
+.nameInput {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fg);
+  background: var(--surface);
+  border: 1.5px solid var(--accent);
+  border-radius: 6px;
+  padding: 3px 7px;
+  outline: none;
+  font-family: inherit;
 }
 
 .ticketCount {

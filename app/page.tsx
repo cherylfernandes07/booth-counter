@@ -15,24 +15,35 @@ type Grade = typeof GRADES[number];
 interface Booth {
   id: string;
   grade: Grade;
-  name: string;
+  defaultName: string;
 }
 
 const BOOTHS: Booth[] = GRADES.flatMap(g =>
-  CLASSES.map(c => ({ id: `${g}-${c}`, grade: g, name: `${GRADE_LABELS[g]} · Class ${c}` }))
+  CLASSES.map(c => ({
+    id: `${g}-${c}`,
+    grade: g,
+    defaultName: `${GRADE_LABELS[g]} · Class ${c}`,
+  }))
 );
 
 type Counts = Record<string, number>;
+type Names = Record<string, string>;
 type View = 'booth' | 'organizer';
 
 export default function FallFest() {
   const [counts, setCounts] = useState<Counts>(() =>
     Object.fromEntries(BOOTHS.map(b => [b.id, 0]))
   );
+  const [names, setNames] = useState<Names>({});
   const [currentGrade, setCurrentGrade] = useState<Grade | 'all'>('all');
   const [view, setView] = useState<View>('booth');
   const [status, setStatus] = useState<'loading' | 'live' | 'error'>('loading');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const editInputRef = useRef<HTMLInputElement>(null);
   const pendingRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  const getDisplayName = (booth: Booth) => names[booth.id] || booth.defaultName;
 
   // Poll every 2 seconds
   const fetchCounts = useCallback(async () => {
@@ -41,6 +52,7 @@ export default function FallFest() {
       if (!res.ok) throw new Error('fetch failed');
       const data = await res.json();
       setCounts(data.counts);
+      setNames(data.names || {});
       setStatus('live');
     } catch {
       setStatus('error');
@@ -53,11 +65,14 @@ export default function FallFest() {
     return () => clearInterval(interval);
   }, [fetchCounts]);
 
+  // Focus input when editing starts
+  useEffect(() => {
+    if (editingId) editInputRef.current?.focus();
+  }, [editingId]);
+
   const updateCount = (boothId: string, delta: number) => {
     setCounts(prev => {
       const next = { ...prev, [boothId]: Math.max(0, (prev[boothId] || 0) + delta) };
-
-      // Debounce API call — wait 400ms after last tap
       clearTimeout(pendingRef.current[boothId]);
       pendingRef.current[boothId] = setTimeout(() => {
         fetch('/api/tickets', {
@@ -66,9 +81,34 @@ export default function FallFest() {
           body: JSON.stringify({ boothId, count: next[boothId] }),
         }).catch(console.error);
       }, 400);
-
       return next;
     });
+  };
+
+  const startEdit = (booth: Booth) => {
+    setEditingId(booth.id);
+    setEditValue(names[booth.id] || '');
+  };
+
+  const commitEdit = async (boothId: string) => {
+    const trimmed = editValue.trim();
+    setNames(prev => {
+      const next = { ...prev };
+      if (trimmed) next[boothId] = trimmed;
+      else delete next[boothId];
+      return next;
+    });
+    setEditingId(null);
+    await fetch('/api/tickets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ boothId, name: trimmed }),
+    }).catch(console.error);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, boothId: string) => {
+    if (e.key === 'Enter') commitEdit(boothId);
+    if (e.key === 'Escape') setEditingId(null);
   };
 
   const totalTickets = BOOTHS.reduce((s, b) => s + (counts[b.id] || 0), 0);
@@ -98,7 +138,6 @@ export default function FallFest() {
       </header>
 
       <main className={styles.main}>
-        {/* STATUS */}
         {status === 'loading' && <p className={styles.statusMsg}>Connecting…</p>}
         {status === 'error' && <p className={styles.statusError}>⚠️ Connection issue — retrying…</p>}
 
@@ -119,7 +158,33 @@ export default function FallFest() {
           <div className={styles.boothGrid}>
             {visibleBooths.map(booth => (
               <div key={booth.id} className={styles.boothCard}>
-                <div className={styles.boothName}>{booth.name}</div>
+
+                {/* NAME ROW */}
+                <div className={styles.nameRow}>
+                  {editingId === booth.id ? (
+                    <input
+                      ref={editInputRef}
+                      className={styles.nameInput}
+                      value={editValue}
+                      onChange={e => setEditValue(e.target.value)}
+                      onBlur={() => commitEdit(booth.id)}
+                      onKeyDown={e => handleKeyDown(e, booth.id)}
+                      placeholder={booth.defaultName}
+                      maxLength={40}
+                    />
+                  ) : (
+                    <>
+                      <span className={styles.boothName}>{getDisplayName(booth)}</span>
+                      <button
+                        className={styles.editBtn}
+                        onClick={() => startEdit(booth)}
+                        aria-label="Rename booth"
+                        title="Rename"
+                      >✏️</button>
+                    </>
+                  )}
+                </div>
+
                 <div>
                   <div className={styles.ticketCount}>{counts[booth.id] || 0}</div>
                   <div className={styles.ticketLabel}>tickets collected</div>
@@ -172,7 +237,7 @@ export default function FallFest() {
                 <tbody>
                   {visibleBooths.map(b => (
                     <tr key={b.id}>
-                      <td>{b.name}</td>
+                      <td>{getDisplayName(b)}</td>
                       <td>{GRADE_LABELS[b.grade]}</td>
                       <td>
                         <span className={`${styles.badge} ${counts[b.id] ? styles.badgeHigh : styles.badgeZero}`}>
